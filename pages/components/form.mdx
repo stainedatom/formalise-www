@@ -1,0 +1,8 @@
+# `<Form/>`
+
+The base form component that takes in the following props:
+- `children: ReactNode` - *required* the children that the form will render out. These are meant to be one or multiple `<FormPage/>` components.
+- `initialValues: any` - *required* the values that are initially attached to the fields in the form. It is an object whose keys corresponds to field names and values corresponds to the field's initial value.
+- `onSubmit: (data: any, e: FormEvent<HTMLFormElement>) => void` - the handler containing logic for form submission.
+- `style: CSSProperties` - the style to be passed on to the form component.
+- `className: string` - the class name to be passed on to the form component.

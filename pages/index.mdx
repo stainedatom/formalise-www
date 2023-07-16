@@ -1,11 +1,137 @@
-# Introduction
- 
-Welcome to Nextra! This is a basic docs template. You can use it as a starting point for your own project :)
+# Overview
+``` filename copy
+npm i @panhaboth/formalise
+```
 
-## What is Nextra?
+Formalise allows you to build **paginated** forms **declaratively**. It comes batteries-included, and has API that allows for nuanced customisation of the elements that go into your form.
 
-A **simple**, **powerful** and **flexible** site generation framework with everything you love from Next.js.
+Below is an example, omitting the magic of stylesheets:
 
-## Documentation
+```tsx filename="YourForm.tsx"
+import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
-The documentation is available at [https://nextra.site](https://nextra.site).
+export default function YourForm(){
+  return (
+    <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
+          onSubmit={(data, e) => {console.log(data, e)}}
+    >
+      <FormPage>
+        <Input name='email' type='text' placeholder='Email'/>
+        <Input name='password' type='password' placeholder='Password'/>
+        <Button onClick={() => NextPage}>Continue</Button>
+      </FormPage>
+      <FormPage>
+        <Select name='question'>
+          <option value='a'>What's your birthday?</option>
+          <option value='b'>In what town were you born?</option>
+        </Select>
+        <Input name='answer' type='text'/>
+        <Button onClick={() => PrevPage}>Continue</Button>
+        <Button>Submit</Button>
+      </FormPage>
+    </Form>
+  )
+}
+```
+
+<br/>
+
+import Form1 from '../components/Form1'
+
+<Form1/>
+
+<br/>
+
+Upon submitting the form, notice in your browser console that it logs the raw data as an object, and the form event itself.
+
+## Intercepting the `onClick` function
+
+Now imagine that you wish to perform some server-side validation on the first page before allowing the user to proceed to the next. With Formalise and its custom `onClick` event listeners, this is easy.
+
+The `onClick` prop of the `Button` element is a function that is called on the current form data and the button event, so that the current form data is accessible through a parameter. Custom logic is then provided in the function body and the form proceeds on to the next page depending on whether or not the function returns `NextPage`.
+
+```tsx filename="YourForm.tsx"
+import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+import { useState } from 'react';
+
+export default function YourForm(){
+  const [ error, setError ] = useState<string | null>(null);
+
+  const validate = (obj) => {
+    if(obj.email === 'kun@home.com') return true;
+    else return false;
+  }
+
+  return (
+    <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
+          onSubmit={(data, e) => {console.log(data, e)}}
+    >
+      <FormPage>
+        {error ? error : null}
+        <Input name='email' type='text' placeholder='Email'/>
+        <Input name='password' type='password' placeholder='Password'/>
+        <Button onClick={(data) => {
+          const passed = validate({email: data.email, password: data.password});
+          if(passed) return NextPage;
+          else setError('Username does not match.');
+        }}>Continue</Button>
+      </FormPage>
+      ...
+    </Form>
+  )
+}
+```
+
+<br/>
+
+import Form2 from '../components/Form2'
+
+<Form2/>
+
+<br/>
+
+In the example above, try entering some text and click *Continue*. A simple error message is rendered unless the `email` field has a value of `kun@home.com`.
+
+The possibilities are limitless! Intercepting the `onClick` function makes one-time password forms extremely easy.
+
+## Intercepting the `onChange` function
+
+Imagine further that you wish to render the value of some field as on output somewhere in your component. This could perhaps be on the next page of the form. Formalise allows you to provide `onChange` listeners to your fields without impacting its ability to listen for values and attach them to the relevant field names.
+
+```tsx filename="YourForm.tsx"
+import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+import { useState } from 'react';
+
+export default function YourForm(){
+  const [ question, setQuestion ] = useState<string>('a');
+
+  return (
+    <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
+          onSubmit={(data, e) => {console.log(data, e)}}
+    >
+      ...
+      <FormPage>
+        <Select name='question' onChange={(e) => {
+          setQuestion(e.target.value)
+        }}>
+          <option value='a'>What's your birthday?</option>
+          <option value='b'>In what town were you born?</option>
+        </Select>
+        <Input name='answer' type={question === 'a' ? 'date' : 'text'}/>
+        <Button onClick={() => PrevPage}>Continue</Button>
+        <Button>Submit</Button>
+      </FormPage>
+    </Form>
+  )
+}
+```
+
+<br/>
+
+import Form3 from '../components/Form3'
+
+<Form3/>
+
+<br/>
+
+On changing the value of the `email` field, an output is emitted underneath it, which we specified as our custom `onChange` logic. Also, submit the form and look at your browser console! The correct value of the field is attached.
