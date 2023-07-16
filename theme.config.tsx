@@ -15,7 +15,8 @@ const config: DocsThemeConfig = {
   },
   editLink: {
     component: null
-  }
+  },
+  darkMode: false
 }
 
 export default config
