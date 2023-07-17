@@ -16,7 +16,12 @@ const config: DocsThemeConfig = {
   editLink: {
     component: null
   },
-  darkMode: false
+  darkMode: false,
+  useNextSeoProps(){
+    return {
+      titleTemplate: '%s - Formalise'
+    }
+  }
 }
 
 export default config
