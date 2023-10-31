@@ -1,0 +1,10 @@
+# `<Field/>`
+
+The input components that Formalise internally listens and attaches values to the corresponding field names:
+- `name: string` - the name corresponding to the `<Form/>`'s `initialValue` prop key to which the input's value is attached.
+- `as: 'input' | 'select' | 'textarea' | React.FC` - the component to be rendered as form input.
+- the React-extended props of the native HTML `input`/`select`/`textarea` element and any other props to be passed on if `as` is of type `React.FC`.
+
+### Nesting field names
+
+Formalise supports field name nesting out of the box using the dot notation. Simply name a field as the string 'x.y' to attach to `initialValue.x.y` where `initialValue.x` is an object.

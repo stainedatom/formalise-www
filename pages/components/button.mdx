@@ -1,9 +1,6 @@
 # `<Button/>`
 
-The button with a custom `onClick` listener that allows for easy navigation between pages and access values on page change.
-- `onClick: (data: any, e: MouseEvent<HTMLButtonElement>) => (void | typeof NextPage | typeof PrevPage)` - the function called on the current form data and the mouse event. If ever it returns `NextPage`, the form transitions to the next page. If it returns `PrevPage`, the form transitions to the previous page.
-
-and then props from exclusively one of the following sets of props:
-
-- `as: ReactElement<any>` - the text area component to be rendered. If `onClick` is a prop of this component, it is ignored.
-- the React-extended props of the native HTML text area element
+The button with a custom `onClick` listener that allows for easy navigation between pages and dynamic rendering of fields in a `FieldArray`.
+- `onClick?: (e: MouseEvent<HTMLButtonElement>) => (void | typeof NextPage | typeof PrevPage | string)` - the function called on the current form data and the mouse event. If ever it returns `NextPage`, the form transitions to the next page. If it returns `PrevPage`, the form transitions to the previous page. If it returns a `string`, it will look push to a `FieldArray` value using the first item in it as template.
+- `as?: React.FC` - the function component to be rendered in place of the native `button` element.
+- the React-extended props of the native HTML `button` element and any other props if `as` is provided.

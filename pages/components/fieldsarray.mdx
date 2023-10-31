@@ -1,0 +1,29 @@
+# `<FieldsArray/>`
+
+A sub-form with its own set of inputs that can be dymanically added to the main form:
+- `name: string` - the name corresponding to the `<Form/>`'s `initialValue` prop key to which the input's value is attached.
+- `children: ReactNode | ((index: number, length: number) => ReactElement)` - the content of the sub-form of which multiple instances could be added. `Field` components *must* be a direct child in order for it to work as expected.
+
+The `name` property of the `initialValues` object corresponding to the `FieldArray`'s name is an array of objects whose property names correspond to the inputs that are members of the `FieldArray`. As an example:
+
+```ts filename="initialValues"
+{
+  ...
+  list: [{
+    inputA: '',
+    inputB: ''
+  }, {
+    inputA: '',
+    inputB: ''
+  }]
+}
+```
+
+```ts filename="FieldArrayExample.tsx"
+<FieldArray name='list'>
+  <Field name='inputA' as='input'/>
+  <Field name='inputB' as='input'/>
+</FieldArray>
+```
+
+Two members will be rendered by default because `list` in the object `initialValues` is an array of two elements.

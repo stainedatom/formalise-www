@@ -1,8 +1,7 @@
 {
   "form": "Form",
   "formpage": "FormPage",
-  "input": "Input",
-  "select": "Select",
-  "textarea": "TextArea",
-  "button": "Button"
+  "field": "Field",
+  "button": "Button",
+  "fieldsarray": "FieldsArray"
 }

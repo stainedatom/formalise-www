@@ -23,8 +23,10 @@ export default function YourForm(){
           <Row><Button onClick={() => NextPage} className={`${styles.btn} ${styles.green}`}>Continue</Button></Row>
         </FormPage>
         <FormPage className={styles.page}>
-          {(validators, data) => <>
-            <Field as='select' name='question' className={styles.input} style={{background: 'none'}}>
+          {(validators, data, setField) => <>
+            <Field as='select' name='question' className={styles.input} style={{background: 'none'}} onChange={() => {
+              setField('answer', '');
+            }}>
               <option value='a'>What's your birthday?</option>
               <option value='b'>In what town were you born?</option>
             </Field>

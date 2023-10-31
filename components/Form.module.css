@@ -1,0 +1,91 @@
+.form{
+  width: 100%;
+  max-width: 25rem;
+  margin: 0 auto;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+  border-radius: 6px;
+  padding: 0rem 2rem 3rem 2rem;
+  height: auto;
+}
+
+.page{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row{
+  display: flex;
+}
+
+.input{
+  width: 100%;
+  border: 1px solid rgb(222, 222, 222);
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  height: 2.5rem;
+  appearance: none;
+  background-color: white;
+}
+
+.btn{
+  text-align: center;
+  padding: 0.5rem 0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 5px 5px;
+  width: 100%;
+}
+
+.green{
+  background-color: rgb(45, 205, 112);
+}
+
+.orange{
+  background-color: orangered;
+  color: black;
+}
+
+.errorContainer{
+  background-color: rgb(249, 221, 227);
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+  color: rgb(231, 0, 46);
+  border-radius: 5px;
+}
+
+.pageBubble{
+  margin: 0 0.5rem;
+  font-weight: 600;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem;
+  display: flex;
+  border: 3px solid rgb(230, 230, 230);
+  color: rgb(230, 230, 230);
+}
+
+.activePageBubble{
+  border: 3px solid rgb(120, 174, 229);
+  color: rgb(120, 174, 229);
+}
+
+.finishedPageBubble{
+  background-color: rgb(120, 174, 229);
+  border: 3px solid rgb(120, 174, 229);
+  color: white;
+}
+
+.pageDisplayLine{
+  height: 0.15rem;
+  width: 2.5rem;
+  background-color: rgb(230, 230, 230);
+}
+
+.finishedPageDisplayLine{
+  background-color: rgb(120, 174, 229)
+}

@@ -1,33 +1,58 @@
 # Overview
+
 ``` filename copy
 npm i @panhaboth/formalise
 ```
 
-Formalise allows you to build **paginated** forms **declaratively**. It comes batteries-included, and has API that allows for nuanced customisation of the elements that go into your form.
+Building complex forms on the web can sometimes be intimidating. One thinks not only of how data is passed on to different parts of the application logic, but also of the validation in between.
 
-Below is an example, omitting the magic of stylesheets:
+**Formalise abstracts much of this away from you, so that you can focus only on the things that might differ from form to form.**
+
+## Motivation
+
+In building Formalise, I intend to create the most **complete** and **flexible** abstraction layer for form composition. But what makes an abstraction layer complete and flexible?
+
+A form abstraction layer is complete to the extent that it exhaustively identifies the set of all things that fundamentally make a form, a form. Flexibility ensures that the features that fall outside this set are nevertheless possible to implement. Flexibility-oriented APIs are those that provide extensions beyond fundamental features.
+
+Still, being flexible and complete, I believe, is not enough. Heck, if completeness and flexibility are all there is to it, then we would not need to derive layers of abstraction beyond plain JavaScript, or even beyond machine code by extension. I intend Formalise to be a *good* abstraction layer, too, providing easy-to-use, declarative API for a painless developer experience.
+
+Some examples of *fundamental features*:
+- A state for a form input listens to at least one input, and that is itself.
+- Every field array should have a feature to dynamically generate more fields.
+- Forms are meant to have its data submitted to a server.
+
+Some examples of *special features*:
+- A form input might need to listen to other inputs, so that it can dynamically change value or shape.
+- Forms/field arrays have different fields and field names.
+- A submit button might need to cause a special side effect on the front-end.
+
+## Walkthrough
+
+Formalise comes equipped with components that work seamlessly with one another through an *underlying form context*,
+so that you don't have to manually tie them together each and every time you construct a form.
+Below is an example of a simple form composed using Formalise's standard API, omitting the magic of stylesheets:
 
 ```tsx filename="YourForm.tsx"
-import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
 export default function YourForm(){
   return (
     <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
-          onSubmit={(data, e) => {console.log(data, e)}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
     >
       <FormPage>
-        <Input name='email' type='text' placeholder='Email'/>
-        <Input name='password' type='password' placeholder='Password'/>
+        <Field as='input' name='email' type='text' placeholder='Email'/>
+        <Field as='input' name='password' type='password' placeholder='Password'/>
         <Button onClick={() => NextPage}>Continue</Button>
       </FormPage>
       <FormPage>
-        <Select name='question'>
+        <Field as='select' name='question'>
           <option value='a'>What's your birthday?</option>
           <option value='b'>In what town were you born?</option>
-        </Select>
-        <Input name='answer' type='text'/>
+        </Field>
+        <Field as='input' name='answer' type='text'/>
         <Button onClick={() => PrevPage}>Continue</Button>
-        <Button>Submit</Button>
+        <Button type='submit'>Submit</Button>
       </FormPage>
     </Form>
   )
@@ -42,16 +67,23 @@ import Form1 from '../components/Form1'
 
 <br/>
 
-Upon submitting the form, notice in your browser console that it logs the raw data as an object, and the form event itself.
+The `Form` component looks for `FormPage` components as children, and starts by rendering the first instance of `FormPage` that it encounters. Navigation onto other `FormPage` components is achieved either by using the reserved function names `NextPage` and `PrevPage` for sequential navigation, or by using the exposed page setter function which we shall see in a moment.
 
-## Intercepting the `onClick` function
+### Intercepting form data on the fly
 
-Now imagine that you wish to perform some server-side validation on the first page before allowing the user to proceed to the next. With Formalise and its custom `onClick` event listeners, this is easy.
+Now imagine that you wish to perform some server-side validation on the first page before allowing the user to proceed to the next. Formalise makes this easy by adopting a widely-used component design pattern called *children as a function*.
 
-The `onClick` prop of the `Button` element is a function that is called on the current form data and the button event, so that the current form data is accessible through a parameter. Custom logic is then provided in the function body and the form proceeds on to the next page depending on whether or not the function returns `NextPage`.
+While `FormPage` components can accept the standard `ReactNode` objects as a child, it can also accept a function that returns a React fragment containing the `ReactNode`. This function accepts as parameters the following objects in particular order:
+- A `validators` object (usage coming soon)
+- **A `data` object containing the current input values**
+- A `setField` function to manually set input states
+- The page that is currently active
+- A page setter function.
 
-```tsx filename="YourForm.tsx"
-import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+The second parameter may be used to access the available form input values on the fly. So, as in the following example, 
+
+```tsx filename="YourForm.tsx" {17,22-24}
+import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 import { useState } from 'react';
 
 export default function YourForm(){
@@ -64,17 +96,19 @@ export default function YourForm(){
 
   return (
     <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
-          onSubmit={(data, e) => {console.log(data, e)}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
     >
       <FormPage>
-        {error ? error : null}
-        <Input name='email' type='text' placeholder='Email'/>
-        <Input name='password' type='password' placeholder='Password'/>
-        <Button onClick={(data) => {
-          const passed = validate({email: data.email, password: data.password});
-          if(passed) return NextPage;
-          else setError('Username does not match.');
-        }}>Continue</Button>
+        {(validators, data) => <>
+          {error ? <ErrorMessage message={error}/> : null}
+          <Field as='input' name='email' type='text' placeholder='Email'/>
+          <Field as='input' name='password' type='password' placeholder='Password'/>
+          <Button onClick={() => {
+            const passed = validate({email: data.email, password: data.password});
+            if(passed) return NextPage;
+            else setError('The email does not match. Try entering kun@home.com to access the next page on this form.');
+          }}>Continue</Button>
+        </>}
       </FormPage>
       ...
     </Form>
@@ -90,36 +124,29 @@ import Form2 from '../components/Form2'
 
 <br/>
 
-In the example above, try entering some text and click *Continue*. A simple error message is rendered unless the `email` field has a value of `kun@home.com`.
+In the example above, try entering some text and click *Continue*. A simple error message is rendered unless the `email` field has a value of `kun@home.com`. The possibilities are limitless! Intercepting the `onClick` function makes one-time password forms extremely easy.
 
-The possibilities are limitless! Intercepting the `onClick` function makes one-time password forms extremely easy.
+Imagine now that you wish to dynamically render the some field based on the value of other fields. In the example below, we will switch the input type of a field between `date` and `text` depending on a previous selection by the user.
 
-## Intercepting the `onChange` function
-
-Imagine further that you wish to render the value of some field as on output somewhere in your component. This could perhaps be on the next page of the form. Formalise allows you to provide `onChange` listeners to your fields without impacting its ability to listen for values and attach them to the relevant field names.
-
-```tsx filename="YourForm.tsx"
-import { Form, FormPage, Input, Button, NextPage, PrevPage } from '@panhaboth/formalise';
-import { useState } from 'react';
+```tsx filename="YourForm.tsx" {16}
+import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
 export default function YourForm(){
-  const [ question, setQuestion ] = useState<string>('a');
-
   return (
     <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
-          onSubmit={(data, e) => {console.log(data, e)}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
     >
       ...
       <FormPage>
-        <Select name='question' onChange={(e) => {
-          setQuestion(e.target.value)
-        }}>
-          <option value='a'>What's your birthday?</option>
-          <option value='b'>In what town were you born?</option>
-        </Select>
-        <Input name='answer' type={question === 'a' ? 'date' : 'text'}/>
-        <Button onClick={() => PrevPage}>Continue</Button>
-        <Button>Submit</Button>
+        {(validators, data) => <>
+          <Input as='select' name='question'>
+            <option value='a'>What's your birthday?</option>
+            <option value='b'>In what town were you born?</option>
+          </Input>
+          <Input name='answer' type={data.question === 'a' ? 'date' : 'text'}/>
+          <Button onClick={() => PrevPage}>Continue</Button>
+          <Button>Submit</Button>
+        </>}
       </FormPage>
     </Form>
   )
@@ -134,4 +161,124 @@ import Form3 from '../components/Form3'
 
 <br/>
 
-On changing the value of the `question` field, a state for it is set, which we specified as our custom `onChange` logic. Then, the input type of the `answer` field is rendered accordingly. Also, submit the form and look at your browser console! The correct value of the field is attached.
+The `data` object is accessible at any time, anywhere on the form page. The type of the `input` whose `name` prop is `answer` now changes conditionally on which question the user selects.
+
+### Intercepting the `onChange` event listener
+
+There is still a minor inconvenience in our form. Try entering any date as an answer when the birthday question is selected. Now, change the question to the one on birth town. The state of the `answer` field retains as text. While this might not make for the best user experience, Formalise comes equipped with an easy way to reset, or alter anyhow for that matter, field states upon changing the state of some other field.
+
+```tsx filename="YourForm.tsx" {12-14}
+import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+
+export default function YourForm(){
+  return (
+    <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
+    >
+      ...
+      <FormPage>
+        {(validators, data, setField) => <>
+          <Input as='select' name='question' onChange={() => {
+            setField('answer', '');
+          }}>
+            <option value='a'>What's your birthday?</option>
+            <option value='b'>In what town were you born?</option>
+          </Input>
+          <Input name='answer' type={data.question === 'a' ? 'date' : 'text'}/>
+          <Button onClick={() => PrevPage}>Continue</Button>
+          <Button>Submit</Button>
+        </>}
+      </FormPage>
+    </Form>
+  )
+}
+```
+
+<br/>
+
+import Form4 from '../components/Form4'
+
+<Form4/>
+
+<br/>
+
+Notice now that changing the `question` field resets the value of the `answer` field. Formalise allows you to provide `onChange` listeners to your fields without impacting its ability to listen for values and attach them to the relevant field names.
+
+### Displaying page progression
+
+Formalise allows you to implement your own page progression component very easily if you utilise its children as a function rendering approach. The actively rendered page is available for you to pass on as props to your custom page progression component, as in the example below:
+
+```tsx filename="YourForm.tsx" {11,19}
+import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
+
+export default function YourForm(){
+  return (
+    <Form initialValues={{email: '', password: '', question: 'a', answer: ''}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
+    >
+      <FormPage>
+        {(validators, data, setField, currentPage) => <>
+          <PageDisplay total={2} current={page + 1}/><br/>
+          <Field as='input' name='email' type='text' placeholder='Email'/>
+          <Field as='input' name='password' type='password' placeholder='Password'/>
+          <Button onClick={() => NextPage}>Continue</Button>
+        </>}
+      </FormPage>
+      <FormPage>
+        {(validators, data, setField, currentPage) => <>
+          <PageDisplay total={2} current={page + 1}/><br/>
+          <Input as='select' name='question' onChange={() => {
+            setField('answer', '');
+          }}>
+            <option value='a'>What's your birthday?</option>
+            <option value='b'>In what town were you born?</option>
+          </Input>
+          <Input name='answer' type={data.question === 'a' ? 'date' : 'text'}/>
+          <Button onClick={() => PrevPage}>Continue</Button>
+          <Button>Submit</Button>
+        </>}
+      </FormPage>
+    </Form>
+  )
+}
+```
+
+import Form5 from '../components/Form5'
+
+<Form5/>
+
+Here, the component `PageDisplay` is a particular implementation of a progression bar that utilises the actively rendered page and the total number of pages. On top of this, a page setter function is available as the fifth and final parameter accepted by the child as a function. This page setter function may be used to jump around in your form, from page to page.
+
+### Generating dynamic forms
+
+Dynamic forms allow the user to add *structured* input that in the form data would correspond to an array. For example, let us mock a simple email invitation form that would allow us to send an email to multiple addresses of our choice. This feature is especially powerful when using it in the children as a function pattern, allowing access to the current index and length in that order.
+
+```tsx filename="YourForm.tsx"
+import { Form, FormPage, Field, Button, Push, Delete } from '@panhaboth/formalise';
+
+export default function YourForm(){
+  return (
+    <Form initialValues={{invitees: [{name: '', email: ''}], message: ''}}
+          onSubmit={(data, e) => {alert(JSON.stringify(data))}}
+    >
+      <FormPage>
+        <FieldsArray name='invitees'>
+          {(index, length) => <> 
+            <Field as='input' name='name' placeholder={`Person ${index + 1}`}/>
+            <Field as='input' name='email' placeholder={`Email`}/>
+            {index !== 0 && <Button onClick={() => Delete}>Remove</Button>}
+          </>}
+        </FieldsArray>
+        <Field as='textarea' name='message' placeholder='Message'/>
+        <Button onClick={() => Push('invitees')}>+ Add Invitees</Button>
+      </FormPage>
+    </Form>
+  )
+}
+```
+
+import Form6 from '../components/Form6'
+
+<Form6/>
+
+The `FieldsArray` component relies on its member `Field`s being its direct children and a non-empty array as its value, so that there exists a template for it to copy over to a new member when the `Push` function is called.
