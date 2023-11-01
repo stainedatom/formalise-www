@@ -67,20 +67,20 @@ import Form1 from '../components/Form1'
 
 <br/>
 
-The `Form` component looks for `FormPage` components as children, and starts by rendering the first instance of `FormPage` that it encounters. Navigation onto other `FormPage` components is achieved either by using the reserved function names `NextPage` and `PrevPage` for sequential navigation, or by using the exposed page setter function which we shall see in a moment.
+The `Form` component looks for `FormPage` components as children, and starts by rendering the first instance of `FormPage` that it encounters. Navigation into other `FormPage` components is achieved either by using the reserved function names `NextPage` and `PrevPage` for sequential navigation, or by using the exposed page setter function which we shall see in a moment.
 
 ### Intercepting form data on the fly
 
 Now imagine that you wish to perform some server-side validation on the first page before allowing the user to proceed to the next. Formalise makes this easy by adopting a widely-used component design pattern called *children as a function*.
 
-While `FormPage` components can accept the standard `ReactNode` objects as a child, it can also accept a function that returns a React fragment containing the `ReactNode`. This function accepts as parameters the following objects in particular order:
-- A `validators` object (usage coming soon)
-- **A `data` object containing the current input values**
-- A `setField` function to manually set input states
+While `FormPage` components can accept the standard `ReactNode` as children, it can also accept a function that returns a React fragment containing the `ReactNode`. This function accepts as parameters the following objects in particular order:
+- A validators object (usage coming soon)
+- **A data object containing the current input values**
+- A field setter function to manually set input states
 - The page that is currently active
-- A page setter function.
+- A page setter function to navigate into other pages.
 
-The second parameter may be used to access the available form input values on the fly. So, as in the following example, 
+The second parameter may be used to access the available form values on the fly, as in the following example:
 
 ```tsx filename="YourForm.tsx" {17,22-24}
 import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
@@ -124,11 +124,11 @@ import Form2 from '../components/Form2'
 
 <br/>
 
-In the example above, try entering some text and click *Continue*. A simple error message is rendered unless the `email` field has a value of `kun@home.com`. The possibilities are limitless! Intercepting the `onClick` function makes one-time password forms extremely easy.
+Try entering some text and click *Continue*. A simple error message is rendered unless the `email` field has a value of `kun@home.com`. With this ability to hoist data around into custom logic within your form, the possibilities are truly limitless.
 
 Imagine now that you wish to dynamically render the some field based on the value of other fields. In the example below, we will switch the input type of a field between `date` and `text` depending on a previous selection by the user.
 
-```tsx filename="YourForm.tsx" {16}
+```tsx filename="YourForm.tsx" {15}
 import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
 export default function YourForm(){
@@ -167,7 +167,7 @@ The `data` object is accessible at any time, anywhere on the form page. The type
 
 There is still a minor inconvenience in our form. Try entering any date as an answer when the birthday question is selected. Now, change the question to the one on birth town. The state of the `answer` field retains as text. While this might not make for the best user experience, Formalise comes equipped with an easy way to reset, or alter anyhow for that matter, field states upon changing the state of some other field.
 
-```tsx filename="YourForm.tsx" {12-14}
+```tsx filename="YourForm.tsx" {11-13}
 import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
 export default function YourForm(){
@@ -202,13 +202,13 @@ import Form4 from '../components/Form4'
 
 <br/>
 
-Notice now that changing the `question` field resets the value of the `answer` field. Formalise allows you to provide `onChange` listeners to your fields without impacting its ability to listen for values and attach them to the relevant field names.
+Notice now that changing the `question` field resets the value of the `answer` field. Formalise allows you to provide `onChange` listeners to your fields without impacting its ability to listen for changes internally and correctly attaching it to the relevant state in context.
 
 ### Displaying page progression
 
 Formalise allows you to implement your own page progression component very easily if you utilise its children as a function rendering approach. The actively rendered page is available for you to pass on as props to your custom page progression component, as in the example below:
 
-```tsx filename="YourForm.tsx" {11,19}
+```tsx filename="YourForm.tsx" {10,18}
 import { Form, FormPage, Field, Button, NextPage, PrevPage } from '@panhaboth/formalise';
 
 export default function YourForm(){
